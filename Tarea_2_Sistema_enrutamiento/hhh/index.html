@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mapa de Rutas Óptimas</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #mapa {
+            height: 600px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        #info {
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚚 Mapa de Rutas Óptimas por Vehículo</h1>
+    <div id="info">Cargando datos...</div>
+    <div id="mapa"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('mapa').setView([23.0, -102.0], 6); // Centrado en México
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'lime'];
+
+        let ubicaciones = {}; // Mapa nombre => {lat, lng}
+
+        // 1️⃣ Cargar ubicaciones
+        fetch("http://127.0.0.1:5000/ubicaciones")
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(u => {
+                    ubicaciones[u.Nombre] = [u.Latitud_WGS84, u.Longitud_WGS84];
+                    L.marker([u.Latitud_WGS84, u.Longitud_WGS84])
+                        .addTo(map)
+                        .bindPopup(u.Nombre);
+                });
+            })
+            .then(() => {
+                // 2️⃣ Cargar rutas optimizadas
+                fetch("http://127.0.0.1:5000/rutas_optimizada")
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('info').innerHTML =
+                            `<b>Costo total:</b> ${data.costo_total.toFixed(2)}<br>` +
+                            `<b>Vehículos:</b> ${data.rutas.length}`;
+
+                        data.rutas.forEach((ruta, idx) => {
+                            const latlngs = [];
+                            ruta.forEach(nombre => {
+                                if (ubicaciones[nombre]) latlngs.push(ubicaciones[nombre]);
+                            });
+                            L.polyline(latlngs, {
+                                color: colores[idx % colores.length],
+                                weight: 3,
+                                opacity: 0.8
+                            }).addTo(map)
+                                .bindPopup(`Ruta Vehículo ${idx + 1}`);
+                        });
+                    });
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('info').innerText = "Error cargando datos.";
+            });
+    </script>
+
+</body>
+
+</html>

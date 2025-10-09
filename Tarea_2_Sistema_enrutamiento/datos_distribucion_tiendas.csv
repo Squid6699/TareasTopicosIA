@@ -1,6 +1,6 @@
 ﻿Tipo,Nombre,Latitud_WGS84,Longitud_WGS84,Capacidad_Venta,Capacidad_Almacenamiento,Nivel_Tienda
 Centro de Distribución,Centro de Distribución 1,24.774908,-107.309857,13648,11639,N/A
-Centro de Distribución,Centro de Distribución 2,24.846399,24.731204,19012,26049,N/A
+Centro de Distribución,Centro de Distribución 2,24.846399,-107.380268,19012,26049,N/A
 Centro de Distribución,Centro de Distribución 3,24.731204,-107.468801,17314,19144,N/A
 Centro de Distribución,Centro de Distribución 4,24.711617,-107.326765,13358,45741,N/A
 Centro de Distribución,Centro de Distribución 5,24.820223,-107.358385,12848,48698,N/A

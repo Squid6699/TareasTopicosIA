@@ -63,7 +63,7 @@ def generar_vecino(rutas):
 # ===============================
 # 6️⃣ Recocido Simulado
 # ===============================
-def recocido_simulado(rutas, matriz_distancias, matriz_combustible, T=1000, alpha_enfriamiento=0.995, iteraciones=10000):
+def recocido_simulado(rutas, matriz_distancias, matriz_combustible, T=10000, alpha_enfriamiento=0.995, iteraciones=100000):
     actual = rutas
     mejor = rutas
     costo_actual = costo_total(actual, matriz_distancias, matriz_combustible)

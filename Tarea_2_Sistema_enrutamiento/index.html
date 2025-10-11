@@ -20,63 +20,114 @@
             padding: 10px;
             background: #f0f0f0;
             border: 1px solid #ccc;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        #contenedor-controles {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 
 <body>
-    <h1>🚚 Mapa de Rutas Óptimas por Vehículo</h1>
-    <div id="info">Cargando datos...</div>
+    <h1>Enrutamiento para tiendas de autoservicio</h1>
+
+    <div id="contenedor-controles">
+        <div id="info">Sin rutas disponibles</div>
+        <button onclick="cargarRutasOptimas()" id="btnRutas" disabled>Cargar Rutas Óptimas</button>
+    </div>
+
     <div id="mapa"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        const map = L.map('mapa').setView([23.0, -102.0], 6); // Centrado en México
+        const map = L.map('mapa').setView([23.0, -102.0], 6);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'cyan', 'magenta', 'lime'];
+        const colores = ["blue" ,"yellow", "red", "green", "purple", "lime", "darkred", "lightblue", "pink", "gray"];
+        let ubicaciones = {};
 
-        let ubicaciones = {}; // Mapa nombre => {lat, lng}
+        // Capa de grupo para almacenar las rutas y poder borrarlas
+        let rutasLayerGroup = L.layerGroup().addTo(map);
 
-        // 1️⃣ Cargar ubicaciones
+
+        // Función para cargar y dibujar las rutas óptimas.
+        function cargarRutasOptimas() {
+            // Deshabilitar el botón y actualizar el estado
+            const btn = document.getElementById('btnRutas');
+            btn.disabled = true;
+            document.getElementById('info').innerText = "Cargando rutas optimizadas...";
+
+            // Limpiar rutas anteriores
+            rutasLayerGroup.clearLayers();
+
+            fetch("http://127.0.0.1:5000/rutas_optimizada")
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al cargar las rutas.');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    // Actualizar información
+                    document.getElementById('info').innerHTML =
+                        `<b>Costo total:</b> ${data.costo_total.toFixed(2)}<br>` +
+                        `<b>Vehículos:</b> ${data.rutas.length}`;
+
+                    // Dibujar rutas
+                    data.rutas.forEach((ruta, idx) => {
+                        const latlngs = [];
+                        ruta.forEach(nombre => {
+                            if (ubicaciones[nombre]) {
+                                latlngs.push(ubicaciones[nombre]);
+                            }
+                        });
+                        L.polyline(latlngs, {
+                            color: colores[idx % colores.length],
+                            weight: 2,
+                            opacity: 0.8
+                        }).addTo(rutasLayerGroup)
+                            .bindPopup(`${ruta.join(' -> ')}`);
+                    });
+                })
+                .catch(err => {
+                    console.error("Error al cargar rutas:", err);
+                    document.getElementById('info').innerText = "Error: No se pudo cargar las rutas.";
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Recargar Rutas Óptimas";
+                });
+        }
+
+
+        // Cargar ubicaciones
         fetch("http://127.0.0.1:5000/ubicaciones")
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Error al cargar las ubicaciones. Código de estado: ' + res.status);
+                }
+                return res.json();
+            })
             .then(data => {
+                // document.getElementById('info').innerText = `${data.length} Ubicaciones cargadas. Listo para calcular rutas.`;
                 data.forEach(u => {
+                    // Guardar ubicaciones
                     ubicaciones[u.Nombre] = [u.Latitud_WGS84, u.Longitud_WGS84];
+                    // Añadir marcador
                     L.marker([u.Latitud_WGS84, u.Longitud_WGS84])
                         .addTo(map)
-                        .bindPopup(u.Nombre);
+                        .bindPopup(`<b>${u.Nombre}</b>`);
                 });
-            })
-            .then(() => {
-                // 2️⃣ Cargar rutas optimizadas
-                fetch("http://127.0.0.1:5000/rutas_optimizada")
-                    .then(res => res.json())
-                    .then(data => {
-                        document.getElementById('info').innerHTML =
-                            `<b>Costo total:</b> ${data.costo_total.toFixed(2)}<br>` +
-                            `<b>Vehículos:</b> ${data.rutas.length}`;
-
-                        data.rutas.forEach((ruta, idx) => {
-                            const latlngs = [];
-                            ruta.forEach(nombre => {
-                                if (ubicaciones[nombre]) latlngs.push(ubicaciones[nombre]);
-                            });
-                            L.polyline(latlngs, {
-                                color: colores[idx % colores.length],
-                                weight: 3,
-                                opacity: 0.8
-                            }).addTo(map)
-                                .bindPopup(`Ruta Vehículo ${idx + 1}`);
-                        });
-                    });
+                // Habilitar el botón después de cargar las ubicaciones
+                document.getElementById('btnRutas').disabled = false;
             })
             .catch(err => {
-                console.error(err);
-                document.getElementById('info').innerText = "Error cargando datos.";
+                console.error("Error al cargar ubicaciones:", err);
+                document.getElementById('info').innerText = "Error cargando ubicaciones iniciales.";
             });
     </script>
 

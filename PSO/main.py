@@ -19,73 +19,6 @@ class Particula:
     crear una nueva partícula, solo se dispone de información sobre su posición 
     inicial y velocidad, el resto de atributos están vacíos.
     
-    Parameters
-    ----------
-    n_variables : `int`
-        número de variables que definen la posición de la partícula.
-        
-    limites_inf : `list` or `numpy.ndarray`, optional
-        límite inferior de cada variable. Si solo se quiere predefinir límites
-        de alguna variable, emplear ``None``. Los ``None`` serán remplazados
-        por el valor (-10**3). (default is ``None``)
-        
-    limites_sup : `list` or `numpy.ndarray`, optional
-        límite superior de cada variable. Si solo se quiere predefinir límites
-        de alguna variable, emplear ``None``. Los ``None`` serán remplazados
-        por el valor (+10**3). (default is ``None``)
-
-    verbose : `bool`, optional
-        mostrar información de la partícula creada. (default is ``False``)
-
-    Attributes
-    ----------
-    n_variables : `int`
-        número de variables que definen la posición de la partícula.
-
-    limites_inf : `list` or `numpy.ndarray`
-        límite inferior de cada variable. Si solo se quiere predefinir límites
-        de alguna variable, emplear ``None``. Los ``None`` serán remplazados por
-        el valor (-10**3).
-
-    limites_sup : `list` or `numpy.ndarray`
-        límite superior de cada variable. Si solo se quiere predefinir límites
-        de alguna variable, emplear ``None``. Los``None`` serán remplazados por
-        el valor (+10**3).
-
-    mejor_valor : `numpy.ndarray`
-        mejor valor que ha tenido la partícula hasta el momento.
-
-    mejor_posicion : `numpy.ndarray`
-        posición en la que la partícula ha tenido el mejor valor hasta el momento.
-
-    valor : `float`
-        valor actual de la partícula. Resultado de evaluar la función objetivo
-        con la posición actual.
-
-    velocidad : `numpy.ndarray`
-        array con la velocidad actual de la partícula.
-
-    Raises
-    ------
-    raise Exception
-        si `limites_inf` es distinto de None y su longitud no coincide con
-        `n_variables`.
-
-    raise Exception
-        si `limites_sup` es distinto de None y su longitud no coincide con
-        `n_variables`.
-
-    Examples
-    --------
-    Ejemplo creación partícula.
-
-    >>> part = Particula(
-                    n_variables = 3,
-                    limites_inf = [4,10,20],
-                    limites_sup = [-1,2,0],
-                    verbose     = True
-                    )
-
     """
     
     def __init__(self, n_variables, limites_inf=None, limites_sup=None,
@@ -108,8 +41,7 @@ class Particula:
         # Mejor posición en la que ha estado la partícula hasta el momento
         self.mejor_posicion = None
         
-        # CONVERSIONES DE TIPO INICIALES
-        # ----------------------------------------------------------------------
+
         # Si limites_inf o limites_sup no son un array numpy, se convierten en
         # ello.
         if self.limites_inf is not None \
@@ -120,8 +52,6 @@ class Particula:
         and not isinstance(self.limites_sup,np.ndarray):
             self.limites_sup = np.array(self.limites_sup)
         
-        # COMPROBACIONES INICIALES: EXCEPTIONS Y WARNINGS
-        # ----------------------------------------------------------------------
         if self.limites_inf is not None \
         and len(self.limites_inf) != self.n_variables:
             raise Exception(
@@ -148,8 +78,6 @@ class Particula:
                 "son: [-10^3, 10^3]."
             )
 
-        # COMPROBACIONES INICIALES: ACCIONES
-        # ----------------------------------------------------------------------
 
         # Si no se especifica limites_inf, el valor mínimo que pueden tomar las 
         # variables es -10^3.
@@ -169,8 +97,6 @@ class Particula:
         if self.limites_sup is not None:
             self.limites_sup[self.limites_sup == None] = +10**3
         
-        # BUCLE PARA ASIGNAR UN VALOR A CADA UNA DE LAS VARIABLES QUE DEFINEN LA
-        # POSICIÓN
         # ----------------------------------------------------------------------
         for i in np.arange(self.n_variables):
         # Para cada posición, se genera un valor aleatorio dentro del rango
@@ -230,43 +156,6 @@ class Particula:
         si la nueva posición es mejor que las anteriores. Modifica los atributos
         valor, mejor_valor y mejor_posicion de la partícula.
         
-        Parameters
-        ----------
-        funcion_objetivo : `function`
-            función que se quiere optimizar.
-
-        optimizacion : {'maximizar', 'minimizar'}
-            dependiendo de esto, el mejor valor histórico de la partícula será
-            el mayor o el menor valor que ha tenido hasta el momento.
-
-        verbose : `bool`, optional
-            mostrar información del proceso por pantalla. (default is ``False``)
-          
-        Raises
-        ------
-        raise Exception
-            si el argumento `optimizacion` es distinto de 'maximizar' o 'minimizar'
-
-        Examples
-        --------
-        Ejemplo evaluar partícula con una función objetivo.
-
-        >>> part = Particula(
-                n_variables = 3,
-                limites_inf = [4,10,20],
-                limites_sup = [-1,2,None],
-                verbose     = True
-                )
-
-        >>> def funcion_objetivo(x_0, x_1, x_2):
-                f= x_0**2 + x_1**2 + x_2**2
-                return(f)
-
-        >>> part.evaluar_particula(
-                funcion_objetivo = funcion_objetivo,
-                optimizacion     = "maximizar",
-                verbose          = True
-                )
 
         """
 
@@ -316,52 +205,6 @@ class Particula:
         Este método ejecuta el movimiento de una partícula, lo que implica
         actualizar su velocidad y posición. No se permite que la partícula
         salga de la zona de búsqueda acotada por los límites.
-        
-        Parameters
-        ----------
-        mejor_p_enjambre : `np.narray`
-            mejor posición de todo el enjambre.
-
-        inercia : `float`, optional
-            coeficiente de inercia. (default is 0.8)
-
-        peso_cognitivo : `float`, optional
-            coeficiente cognitivo. (default is 2)
-
-        peso_social : `float`, optional
-            coeficiente social. (default is 2)
-
-        verbose : `bool`, optional
-            mostrar información de la partícula creada. (default is ``False``)
-          
-        Examples
-        --------
-        Ejemplo mover partícula.
-
-        >>> part = Particula(
-                n_variables = 3,
-                limites_inf = [4,10,20],
-                limites_sup = [-1,2,None],
-                verbose     = True
-                )
-
-        >>> def funcion_objetivo(x_0, x_1, x_2):
-                f= x_0**2 + x_1**2 + x_2**2
-                return(f)
-
-        >>> part.evaluar_particula(
-                funcion_objetivo = funcion_objetivo,
-                optimizacion     = "maximizar",
-                verbose          = True
-                )
-
-        >>> part.mover_particula(
-                mejor_p_enjambre = np.array([-1000,-1000,+1000]),
-                inercia          = 0.8,
-                peso_cognitivo   = 2,
-                peso_social      = 2,
-                verbose          = True
-                )
        
         """
 
@@ -421,96 +264,6 @@ class Enjambre:
     """
     Esta clase crea un enjambre de n partículas. El rango de posibles valores
     para cada variable (posición) puede estar acotado.
-
-    Parameters
-    ----------
-    n_particulas :`int`
-        número de partículas del enjambre.
-
-    n_variables : `int`
-        número de variables que definen la posición de las partícula.
-
-    limites_inf : `list` or `numpy.ndarray`
-        límite inferior de cada variable. Si solo se quiere predefinir límites
-        de alguna variable, emplear ``None``. Los ``None`` serán remplazados por
-        el valor (-10**3).
-
-    limites_sup : `list` or `numpy.ndarray`
-        límite superior de cada variable. Si solo se quiere predefinir límites
-        de alguna variable, emplear ``None``. Los``None`` serán remplazados por
-        el valor (+10**3).
-
-    verbose : `bool`, optional
-        mostrar información de la partícula creada. (default is ``False``)
-
-    Attributes
-    ----------
-    partículas : `list`
-        lista con todas las partículas del enjambre.
-    
-    n_particulas :`int`
-        número de partículas del enjambre.
-
-    n_variables : `int`
-        número de variables que definen la posición de las partícula.
-
-    limites_inf : `list` or `numpy.ndarray`
-        límite inferior de cada variable.
-
-    limites_sup : `list` or `numpy.ndarray`
-        límite superior de cada variable.
-
-    mejor_particula : `object particula`
-        la mejor partícula del enjambre en estado actual.
-
-    mejor_valor : `floar`
-        el mejor valor del enjambre en su estado actual.
-
-    historico_particulas : `list`
-        lista con el estado de las partículas en cada una de las iteraciones que
-        ha tenido el enjambre.
-
-    historico_mejor_posicion : `list`
-        lista con la mejor posición en cada una de las iteraciones que ha tenido
-        el enjambre.
-
-    historico_mejor_valor : `list`
-        lista con el mejor valor en cada una de las iteraciones que ha tenido el
-        enjambre.
-
-    diferencia_abs : `list`
-        diferencia absoluta entre el mejor valor de iteraciones consecutivas.
-
-    resultados_df : `pandas.core.frame.DataFrame`
-        dataframe con la información del mejor valor y posición encontrado en
-        cada iteración, así como la mejora respecto a la iteración anterior.
-
-    valor_optimo : `float`
-        mejor valor encontrado en todas las iteraciones.
-
-    posicion_optima : `numpy.narray`
-        posición donde se ha encontrado el valor_optimo.
-
-    optimizado : `bool`
-        si el enjambre ha sido optimizado.
-
-    iter_optimizacion : `int`
-        número de iteraciones de optimizacion.
-
-    verbose : `bool`, optional
-        mostrar información de la partícula creada. (default is ``False``)
-
-    Examples
-    --------
-    Ejemplo crear enjambre
-
-    >>> enjambre = Enjambre(
-               n_particulas = 5,
-               n_variables  = 3,
-               limites_inf  = [-5,-5,-5],
-               limites_sup  = [5,5,5],
-               verbose      = True
-            )
 
     """
 
@@ -638,25 +391,6 @@ class Enjambre:
         Este método muestra la información de cada una de las n primeras 
         partículas del enjambre.
 
-        Parameters
-        ----------
-
-        n : `int`
-            número de particulas que se muestran. Si no se indica el valor
-            (por defecto ``None``), se muestran todas. Si el valor es mayor
-            que `self.n_particulas` se muestran todas.
-        
-        Examples
-        --------
-        >>> enjambre = Enjambre(
-               n_particulas = 5,
-               n_variables  = 3,
-               limites_inf  = [-5,-5,-5],
-               limites_sup  = [5,5,5],
-               verbose      = True
-            )
-
-        >>> enjambre.mostrar_particulas(n = 1)
 
         """
 
@@ -674,40 +408,6 @@ class Enjambre:
         Este método evalúa todas las partículas del enjambre, actualiza sus
         valores e identifica la mejor partícula.
 
-        Parameters
-        ----------
-        funcion_objetivo : `function`
-            función que se quiere optimizar.
-
-        optimizacion : {maximizar o minimizar}
-            Dependiendo de esto, el mejor valor histórico de la partícula será
-            el mayor o el menor valorque ha tenido hasta el momento.
-
-        verbose : `bool`, optional
-            mostrar información de la partícula creada. (default is ``False``)
-        
-        Examples
-        --------
-        Ejemplo evaluar enjambre
-
-        >>> enjambre = Enjambre(
-               n_particulas = 5,
-               n_variables  = 3,
-               limites_inf  = [-5,-5,-5],
-               limites_sup  = [5,5,5],
-               verbose      = True
-            )
-
-        >>> def funcion_objetivo(x_0, x_1, x_2):
-                f= x_0**2 + x_1**2 + x_2**2
-                return(f)
-
-        >>> enjambre.evaluar_enjambre(
-                funcion_objetivo = funcion_objetivo,
-                optimizacion     = "minimizar",
-                verbose          = True
-                )
-        
         """
 
         # SE EVALÚA CADA PARTÍCULA DEL ENJAMBRE
@@ -756,23 +456,6 @@ class Enjambre:
                        verbose = False):
         """
         Este método mueve todas las partículas del enjambre.
-
-        Parameters
-        ----------
-        optimizacion : {maximizar o minimizar}
-            si se desea maximizar o minimizar la función.
-
-        inercia : `float` or `int`
-            coeficiente de inercia.
-
-        peso_cognitivo : `float` or `int`
-            coeficiente cognitivo.
-
-        peso_social : `float` or `int`
-            coeficiente social.
-
-        verbose : `bool`, optional
-            mostrar información de la partícula creada. (default is ``False``)
         
         """
 
@@ -807,101 +490,7 @@ class Enjambre:
         """
         Este método realiza el proceso de optimización de un enjambre.
 
-        Parameters
-        ----------
-        funcion_objetivo : `function`
-            función que se quiere optimizar.
-
-        optimizacion : {maximizar o minimizar}
-            si se desea maximizar o minimizar la función.
-
-        m_iteraciones : `int` , optional
-            numero de iteraciones de optimización. (default is ``50``)
-
-        inercia : `float` or `int`, optional
-            coeficiente de inercia. (default is ``0.8``)
-
-        peso_cognitivo : `float` or `int`, optional
-            coeficiente cognitivo. (default is ``2``)
-
-        peso_social : `float` or `int`, optional
-            coeficiente social. (default is ``2``)
-
-        reduc_inercia: `bool`, optional
-           activar la reducción del coeficiente de inercia. En tal caso, el
-           argumento `inercia` es ignorado. (default is ``True``)
-
-        inercia_max : `float` or `int`, optional
-            valor inicial del coeficiente de inercia si se activa `reduc_inercia`.
-            (default is ``0.9``)
-
-        inercia_min : `float` or `int`, optional
-            valor minimo del coeficiente de inercia si se activa `reduc_min`.
-            (default is ``0.4``)
-
-        parada_temprana : `bool`, optional
-            si durante las últimas `rondas_parada` generaciones la diferencia
-            absoluta entre mejores individuos no es superior al valor de 
-            `tolerancia_parada`, se detiene el algoritmo y no se crean nuevas
-            generaciones. (default is ``False``)
-
-        rondas_parada : `int`, optional
-            número de generaciones consecutivas sin mejora mínima para que se
-            active la parada temprana. (default is ``None``)
-
-        tolerancia_parada : `float` or `int`, optional
-            valor mínimo que debe tener la diferencia de generaciones consecutivas
-            para considerar que hay cambio. (default is ``None``)
-
-         verbose : `bool`, optional
-            mostrar información de la partícula creada. (default is ``False``)
-        
-        Raises
-        ------
-        raise Exception
-            si se indica `parada_temprana = True` y los argumentos `rondas_parada`
-            o `tolerancia_parada` son ``None``.
-
-        raise Exception
-            si se indica `reduc_inercia = True` y los argumentos `inercia_max`
-            o `inercia_min` son ``None``.
-
-        Examples
-        --------
-        Ejemplo optimización
-
-        >>> def funcion_objetivo(x_0, x_1):
-                # Para la región acotada entre −10<=x_0<=0 y −6.5<=x_1<=0 la 
-                # función tiene múltiples mínimos locales y un único minimo 
-                # global en f(−3.1302468,−1.5821422)= −106.7645367.
-                f = np.sin(x_1)*np.exp(1-np.cos(x_0))**2 \
-                    + np.cos(x_0)*np.exp(1-np.sin(x_1))**2 \
-                    + (x_0-x_1)**2
-                return(f)
-
-        >>> enjambre = Enjambre(
-                        n_particulas = 50,
-                        n_variables  = 2,
-                        limites_inf  = [-10, -6.5],
-                        limites_sup  = [0, 0],
-                        verbose      = False
-                        )
-
-        >>> enjambre.optimizar(
-                funcion_objetivo = funcion_objetivo,
-                optimizacion     = "minimizar",
-                n_iteraciones    = 250,
-                inercia          = 0.8,
-                reduc_inercia    = True,
-                inercia_max      = 0.9,
-                inercia_min      = 0.4,
-                peso_cognitivo   = 1,
-                peso_social      = 2,
-                parada_temprana  = True,
-                rondas_parada    = 5,
-                tolerancia_parada = 10**-3,
-                verbose          = False
-            )
+       
 
         """
 

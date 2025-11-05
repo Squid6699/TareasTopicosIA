@@ -8,8 +8,8 @@ n_sensores = 5
 enjambre = Enjambre(
     n_particulas = 30,
     n_variables  = 2 * n_sensores,
-    limites_inf  = [0] * (2 * n_sensores),
-    limites_sup  = [100] * (2 * n_sensores),
+    limites_inf = [0] * (2 * n_sensores),
+    limites_sup = [50] * (2 * n_sensores),
     verbose      = True
 )
 
